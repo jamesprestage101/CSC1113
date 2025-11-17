@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Planr AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row align-items-center mb-5">
+        <div class="col-md-6 text-center text-md-start">
+            <h1 class="display-4 fw-bold mb-3">Planr: Your AI Planning Assistant</h1>
+            <p class="lead">Cut through planning bureaucracy. Planr’s AI chatbot provides instant answers from consolidated council regulations and historical decisions.</p>
+            <a href="{% url 'chat' %}" class="btn btn-success btn-lg mt-2">Chat Now</a>
+        </div>
+        <div class="col-md-6 text-center">
+            <img src="{% static 'background.png' %}" alt="Planr AI Assistant" class="img-fluid rounded">
+        </div>
+    </div>
+
+    <!-- How Planr Works -->
+    <h2 class="fw-bold text-center mb-4">How Planr Works</h2>
+    <div class="row text-center mb-5">
+        <div class="col-md-4">
+            <div class="card border-success mb-4 shadow">
+                <div class="card-body">
+                    <span class="display-6">01</span>
+                    <h3 class="card-title mt-2">Gathering</h3>
+                    <p class="card-text">Planr auto-scrapes documents and websites from all councils, consolidating planning rules and historical application decisions into a single chatbot.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success mb-4 shadow">
+                <div class="card-body">
+                    <span class="display-6">02</span>
+                    <h3 class="card-title mt-2">Processing</h3>
+                    <p class="card-text">Information is embedded and indexed automatically with ChromaDB. We leverage the open-source <i>Ollama</i> LLM for advanced language understanding and response generation.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success mb-4 shadow">
+                <div class="card-body">
+                    <span class="display-6">03</span>
+                    <h3 class="card-title mt-2">Returning</h3>
+                    <p class="card-text">Planr uses Retrieval-Augmented Generation (RAG), letting users cross-reference chatbot responses against recent planning applications in any area.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subscription Model -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8 text-center">
+            <h2 class="fw-bold mb-3">Affordable, Transparent Pricing</h2>
+            <div class="alert alert-success p-4 mb-3">
+                <span class="h1">€100</span> <span class="h4">/ user / month</span>
+                <br>
+                <span>Unlock full access to Planr <strong>Premium</strong>, unlimited queries and support for your team.</span>
+            </div>
+            <p class="mb-2">
+                Access up-to-date planning regulations, instantly search application histories, and receive informed responses verified with recent data.
+            </p>
+        </div>
+    </div>
+
+    <!-- Extra Features -->
+    <div class="row text-center mb-5">
+        <div class="col-md-12">
+            <h2 class="fw-bold mb-4">Features You'll Love</h2>
+        </div>
+        <div class="col-md-4">
+            <div class="mb-3">
+                <i class="bi bi-chat-dots-fill text-success fs-1"></i>
+                <h5 class="mt-3">Instant Answers 24/7</h5>
+                <p>Get real-time guidance and context from the most recent planning data.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="mb-3">
+                <i class="bi bi-search text-success fs-1"></i>
+                <h5 class="mt-3">Verified Data Sources</h5>
+                <p>Cross-reference chatbot responses with original application documents and local council sources.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="mb-3">
+                <i class="bi bi-shield-check text-success fs-1"></i>
+                <h5 class="mt-3">Private & Secure</h5>
+                <p>Your queries and data stay confidential, serving only your team's planning needs.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

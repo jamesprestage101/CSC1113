@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}LLM Feedback{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="mb-3">Planr Feedback Hub</h2>
+            <p class="mb-4">Help us improve Planr AI! Provide detailed feedback so we can improve our service.</p>
+            
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>Please correct the following errors:</strong>
+                <ul class="mb-0">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" id="feedbackForm" class="p-4 border rounded-3 bg-white shadow-sm">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_feedback_type" class="form-label fw-semibold">Type of Feedback</label>
+                    <select name="feedback_type" id="id_feedback_type" class="form-select">
+                        {% for val, desc in form.fields.feedback_type.choices %}
+                            <option value="{{ val }}" {% if form.feedback_type.value == val %}selected{% endif %}>{{ desc }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.feedback_type.help_text %}
+                        <div class="form-text">{{ form.feedback_type.help_text }}</div>
+                    {% endif %}
+                    {% if form.feedback_type.errors %}
+                        <div class="text-danger small mt-1">{{ form.feedback_type.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_llm_prompt" class="form-label fw-semibold">Prompt (optional)</label>
+                    <textarea name="llm_prompt"
+                              id="id_llm_prompt"
+                              rows="2"
+                              class="form-control"
+                              placeholder="Copy-paste the chat prompt here (optional)">{% if form.llm_prompt.value %}{{ form.llm_prompt.value }}{% endif %}</textarea>
+                    {% if form.llm_prompt.help_text %}
+                        <div class="form-text">{{ form.llm_prompt.help_text }}</div>
+                    {% endif %}
+                    {% if form.llm_prompt.errors %}
+                        <div class="text-danger small mt-1">{{ form.llm_prompt.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_llm_response" class="form-label fw-semibold">LLM Response (optional)</label>
+                    <textarea name="llm_response"
+                              id="id_llm_response"
+                              rows="2"
+                              class="form-control"
+                              placeholder="Copy-paste the LLM response (optional)">{% if form.llm_response.value %}{{ form.llm_response.value }}{% endif %}</textarea>
+                    {% if form.llm_response.help_text %}
+                        <div class="form-text">{{ form.llm_response.help_text }}</div>
+                    {% endif %}
+                    {% if form.llm_response.errors %}
+                        <div class="text-danger small mt-1">{{ form.llm_response.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_description" class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
+                    <textarea name="description"
+                              id="id_description"
+                              rows="5"
+                              class="form-control"
+                              placeholder="e.g., The LLM gave an unexpected answer when I asked...">{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
+                    {% if form.description.help_text %}
+                        <div class="form-text">{{ form.description.help_text }}</div>
+                    {% endif %}
+                    {% if form.description.errors %}
+                        <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-4">
+                    <label for="id_rating" class="form-label fw-semibold d-block">Experience Rating</label>
+                    <div class="d-flex align-items-center">
+                        <input type="range"
+                               id="id_rating"
+                               name="rating"
+                               min="1"
+                               max="5"
+                               value="{% if form.rating.value %}{{ form.rating.value }}{% else %}3{% endif %}"
+                               class="form-range flex-grow-1 me-3"
+                               style="max-width:300px;">
+                        <span class="badge rounded-pill bg-primary fs-5">
+                            <span id="ratingValue">{% if form.rating.value %}{{ form.rating.value }}{% else %}3{% endif %}</span>/5
+                        </span>
+                    </div>
+                    {% if form.rating.help_text %}
+                        <div class="form-text">{{ form.rating.help_text }}</div>
+                    {% endif %}
+                    {% if form.rating.errors %}
+                        <div class="text-danger small mt-1">{{ form.rating.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_screenshot" class="form-label fw-semibold">Upload Screenshot (optional)</label>
+                    <input type="file"
+                           name="screenshot"
+                           id="id_screenshot"
+                           accept="image/*"
+                           class="form-control">
+                    <img id="preview" src="#" alt="Screenshot Preview" class="img-thumbnail mt-3" style="display: none; max-width:220px;">
+                    {% if form.screenshot.help_text %}
+                        <div class="form-text">{{ form.screenshot.help_text }}</div>
+                    {% endif %}
+                    {% if form.screenshot.errors %}
+                        <div class="text-danger small mt-1">{{ form.screenshot.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_transcript" class="form-label fw-semibold">Upload Chat Transcript (optional)</label>
+                    <input type="file"
+                           name="transcript"
+                           id="id_transcript"
+                           accept=".txt,.pdf"
+                           class="form-control">
+                    {% if form.transcript.help_text %}
+                        <div class="form-text">{{ form.transcript.help_text }}</div>
+                    {% endif %}
+                    {% if form.transcript.errors %}
+                        <div class="text-danger small mt-1">{{ form.transcript.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary px-4 mt-3">Submit Feedback</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal that pops up for successful feedback -->
+<div class="modal fade" id="feedbackSuccessModal" tabindex="-1" aria-labelledby="feedbackSuccessLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="feedbackSuccessLabel">Feedback Submitted</h5>
+      </div>
+      <div class="modal-body">
+        Thank you for your feedback! You’re helping us improve Planr’s AI assistant.<br>
+        Redirecting you to the home page...
+      </div>
+      <div class="modal-footer">
+        <a href="{% url 'chat' %}" class="btn btn-primary">Go Now</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Screenshot preview
+    const screenshotInput = document.getElementById('id_screenshot');
+    if (screenshotInput) {
+        screenshotInput.addEventListener('change', function(e){
+            const [file] = e.target.files;
+            if (file) {
+                document.getElementById('preview').src = URL.createObjectURL(file);
+                document.getElementById('preview').style.display = 'block';
+            }
+        });
+    }
+
+    // Rating slider
+    const ratingInput = document.getElementById('id_rating');
+    const ratingValue = document.getElementById('ratingValue');
+    if(ratingInput && ratingValue){
+        ratingInput.addEventListener('input', function(){
+            ratingValue.textContent = ratingInput.value;
+        });
+    }
+
+    // Redirect logic
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if feedback_submitted %}
+        var feedbackModal = new bootstrap.Modal(document.getElementById('feedbackSuccessModal'));
+        feedbackModal.show();
+        setTimeout(function() {
+            window.location.href = "{% url 'chat' %}";
+        }, 3000);
+        {% endif %}
+    });
+</script>
+{% endblock %}

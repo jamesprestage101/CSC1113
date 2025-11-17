@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container my-5 d-flex justify-content-center">
+    <div class="card p-4 shadow" style="max-width: 340px; width:100%;">
+        <div class="d-flex flex-column align-items-center text-center">
+            <img
+                src="{% if user.userprofile.profile_pic %}{{ user.userprofile.profile_pic.url }}{% else %}{{ MEDIA_URL }}profile_pics/default.jpg{% endif %}"
+                alt="Profile"
+                class="rounded-circle mb-3"
+                style="width: 100px; height: 100px; object-fit: cover; border:2px solid #eee;"
+            >
+            <h4>{{ user.username }}</h4>
+            <p class="text-muted small mb-2">
+                Joined: {{ user.date_joined|date:"F j, Y" }}
+            </p>
+            <div>
+                {% if user.userprofile.member_status == "premium" %}
+                    <span class="badge bg-warning text-dark">Premium</span>
+                {% else %}
+                    <span class="badge bg-secondary">Free</span>
+                {% endif %}
+                {% if user.is_staff %}
+                    <span class="badge bg-success ms-2">Admin</span>
+                {% endif %}
+            </div>
+            {% if user.userprofile.member_status == "free" %}
+                <a href="{% url 'subscribe' %}" class="btn btn-warning mt-2">Upgrade to Premium</a>
+            {% endif %}
+            <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary mt-4">
+                Edit Profile Picture
+            </a>
+            <a href="{% url 'subscription_history' %}" class="btn btn-outline-info mt-2">
+                View Subscription History
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

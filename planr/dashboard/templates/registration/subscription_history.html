@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Subscription History{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3>Your Subscription History</h3>
+    {% if transactions %}
+        <table class="table table-bordered table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>Paid On</th>
+                    <th>Amount</th>
+                    <th>Valid Until</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                    <tr>
+                        <td>{{ tx.transaction_date|date:"Y-m-d" }}</td>
+                        <td>€{{ tx.amount }}</td>
+                        <td>{{ tx.valid_until|date:"Y-m-d" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-muted mt-3">No subscription transactions found.</p>
+    {% endif %}
+</div>
+{% endblock %}

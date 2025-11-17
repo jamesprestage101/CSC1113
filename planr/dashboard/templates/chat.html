@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chat - DCC Planning Assistant{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/style.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<script>
+    window.CHAT_API_URL = "{% url 'chat_api' %}";
+    {% if user.is_authenticated and user.userprofile.profile_pic %}
+        window.USER_PROFILE_PIC = "{{ user.userprofile.profile_pic.url|escapejs }}";
+    {% else %}
+        window.USER_PROFILE_PIC = "{{ MEDIA_URL|add:'profile_pics/default.jpg'|escapejs }}";
+    {% endif %}
+</script>
+<div class="container-fluid px-0">
+    <div class="chat-parent">
+        <div class="chat-container{% if not user.is_authenticated or user.userprofile.member_status == 'free' %} blurred{% endif %}">
+            <div class="chat-header">
+                <h2>🏛️ Planr AI</h2>
+            <div class="d-flex justify-content-center my-2">
+                <button class="btn btn-outline-light btn-sm d-flex align-items-center gap-2" id="saveChatBtn" type="button" title="Save Chat Transcript" style="color:white;">
+                    <i class="bi bi-save" style="color:white; font-size:1.2rem;"></i>
+                    <span style="color:white;">Save Chat Transcript</span>
+                </button>
+            </div>
+            </div>
+            <div class="chat-main d-flex flex-column">
+                <div class="chat-messages flex-grow-1" id="chatMessages">
+                    <div class="message assistant">
+                        <div class="message-avatar">🏛️</div>
+                        <div class="message-content">
+                            <p><strong>Hello! Welcome to Planr.</strong></p>
+                            <p>I can help you with:</p>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li>Planning applications information</li>
+                                <li>Planning regulations & exemptions</li>
+                                <li>Short-term letting rules</li>
+                                <li>Drainage requirements</li>
+                                <li>Protected structures</li>
+                            </ul>
+                            <p><strong>Try this question:</strong></p>
+                            <div class="starter-questions">
+                                <div class="starter-question" onclick="askQuestion('CSC1113 Grading Note')">
+                                    📋 CSC1113 Grading Note
+                                </div>
+                                <!-- We have commented out the below starter questions, as free tier cloud hosting cannot run our LLM -->
+                                <div class="starter-question" onclick="askQuestion('What are the short-term letting rules in Dublin?')">
+                                    ⏱️ What are the short-term letting rules?
+                                </div>
+                                <div class="starter-question" onclick="askQuestion('What are the drainage requirements for planning applications?')">
+                                    💧 What are the drainage requirements?
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="loading" id="loading"><span>🤔 Thinking...</span></div>
+                <div class="chat-input-area">
+                    <form class="chat-input" id="chatForm" onsubmit="event.preventDefault(); sendMessage();">
+                        <input 
+                            type="text" 
+                            id="userInput" 
+                            placeholder="Ask about planning regulations, applications, or rules..." 
+                            autocomplete="off"
+                            {% if not user.is_authenticated or user.userprofile.member_status == 'free' %} disabled {% endif %}
+                        >
+                        <button type="submit" id="sendButton"
+                            {% if not user.is_authenticated or user.userprofile.member_status == 'free' %} disabled {% endif %}
+                        >Send</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% if not user.is_authenticated %}
+            <div class="chat-overlay">
+                You are not logged in!<br>
+                <a href="{% url 'login' %}" class="btn btn-primary mt-2">Log in</a>
+            </div>
+        {% elif user.userprofile.member_status == 'free' %}
+            <div class="chat-overlay">
+                You are not a Premium member!<br>
+                <a href="{% url 'subscribe' %}" class="btn btn-warning mt-2">Subscribe here</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chat.js' %}"></script>
+{% endblock %}

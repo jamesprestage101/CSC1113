@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Feedback Tracker{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">Feedback Tracker</h2>
+    {% if user.is_staff %}
+      <form method="get" class="mb-4 d-flex gap-2 align-items-center">
+        <label for="feedbackType" class="mb-0 fw-semibold">Filter by Type:</label>
+        <select name="type" id="feedbackType" class="form-select form-select-sm" style="max-width:190px;">
+            <option value="">All Types</option>
+            {% for value, label in FEEDBACK_TYPE_CHOICES %}
+                <option value="{{ value }}" {% if value == feedback_type %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-outline-primary btn-sm">Apply</button>
+        {% if feedback_type %}
+            <a href="{% url 'feedback_tracker' %}" class="btn btn-link btn-sm">Clear</a>
+        {% endif %}
+      </form>
+    {% endif %}
+    
+    {% if feedbacks %}
+      <div class="accordion" id="feedbackAccordion">
+        {% for feedback in feedbacks %}
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ feedback.id }}">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapse{{ feedback.id }}" aria-expanded="false"
+                      aria-controls="collapse{{ feedback.id }}">
+                {{ feedback.get_feedback_type_display }} 
+                <span class="ms-3">
+                  {% if feedback.status == "resolved" %}
+                    <span class="badge bg-success">RESOLVED</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">IN PROGRESS</span>
+                  {% endif %}
+                </span>
+                <p>&nbsp</p>
+                ({{ feedback.created_at|date:"Y-m-d H:i" }})
+                {% if request.user.is_staff %}
+                  –&nbsp<strong>{{ feedback.user.username }}</strong>
+                {% endif %}
+              </button>
+            </h2>
+            <div id="collapse{{ feedback.id }}" class="accordion-collapse collapse"
+                 aria-labelledby="heading{{ feedback.id }}" data-bs-parent="#feedbackAccordion">
+              <div class="accordion-body">
+                <dl class="row">
+                  <dt class="col-sm-3">Type:</dt>
+                  <dd class="col-sm-9">{{ feedback.get_feedback_type_display }}</dd>
+                  <dt class="col-sm-3">Description:</dt>
+                  <dd class="col-sm-9">{{ feedback.description }}</dd>
+                  <dt class="col-sm-3">Prompt:</dt>
+                  <dd class="col-sm-9">{{ feedback.llm_prompt|linebreaksbr }}</dd>
+                  <dt class="col-sm-3">Response:</dt>
+                  <dd class="col-sm-9">{{ feedback.llm_response|linebreaksbr }}</dd>
+                  <dt class="col-sm-3">Experience Rating:</dt>
+                  <dd class="col-sm-9">{{ feedback.rating }}</dd>
+                  {% if feedback.screenshot %}
+                    <dt class="col-sm-3">Screenshot:</dt>
+                    <dd class="col-sm-9">
+                      <img src="{{ feedback.screenshot.url }}" alt="Screenshot"
+                           class="img-fluid rounded shadow-sm" style="max-width:140px;"/>
+                    </dd>
+                  {% endif %}
+                </dl>
+                
+                {% if request.user.is_staff %}
+                  <form class="mb-3" method="post" action="{% url 'feedback_status_update' feedback.id %}">
+                    {% csrf_token %}
+                    <div class="row g-2 align-items-center">
+                      <div class="col-auto">
+                        <label for="status-{{ feedback.id }}" class="form-label fw-semibold mb-0">Status:</label>
+                      </div>
+                      <div class="col-auto">
+                        <select name="status" id="status-{{ feedback.id }}"
+                                class="form-select form-select-sm w-auto d-inline-block">
+                          <option value="in_progress" {% if feedback.status == "in_progress" %}selected{% endif %}>IN PROGRESS</option>
+                          <option value="resolved" {% if feedback.status == "resolved" %}selected{% endif %}>RESOLVED</option>
+                        </select>
+                      </div>
+                      <div class="col-auto">
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+                      </div>
+                    </div>
+                  </form>
+                  <form method="post" action="{% url 'feedback_response' feedback.id %}">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                      <label class="form-label fw-semibold" for="admin-response-{{ feedback.id }}">Admin Response</label>
+                      <textarea name="response" id="admin-response-{{ feedback.id }}"
+                                class="form-control" rows="2"
+                                placeholder="Leave a response...">{% if feedback.admin_response %}{{ feedback.admin_response }}{% endif %}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-sm">Respond</button>
+                  </form>
+                {% elif feedback.admin_response %}
+                  <div class="alert alert-info mt-3">
+                    <strong>Admin Response:</strong><br>
+                    {{ feedback.admin_response|linebreaksbr }}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="alert alert-info">No feedback submitted yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

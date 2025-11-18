@@ -3,38 +3,77 @@
 
 {% block content %}
 <div class="container my-5 d-flex justify-content-center">
-    <div class="card p-4 shadow" style="max-width: 340px; width:100%;">
-        <div class="d-flex flex-column align-items-center text-center">
-            <img
-                src="{% if user.userprofile.profile_pic %}{{ user.userprofile.profile_pic.url }}{% else %}{{ MEDIA_URL }}profile_pics/default.jpg{% endif %}"
-                alt="Profile"
-                class="rounded-circle mb-3"
-                style="width: 100px; height: 100px; object-fit: cover; border:2px solid #eee;"
-            >
-            <h4>{{ user.username }}</h4>
-            <p class="text-muted small mb-2">
-                Joined: {{ user.date_joined|date:"F j, Y" }}
-            </p>
-            <div>
-                {% if user.userprofile.member_status == "premium" %}
-                    <span class="badge bg-warning text-dark">Premium</span>
-                {% else %}
-                    <span class="badge bg-secondary">Free</span>
-                {% endif %}
-                {% if user.is_staff %}
-                    <span class="badge bg-success ms-2">Admin</span>
-                {% endif %}
-            </div>
-            {% if user.userprofile.member_status == "free" %}
-                <a href="{% url 'subscribe' %}" class="btn btn-warning mt-2">Upgrade to Premium</a>
-            {% endif %}
-            <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary mt-4">
-                Edit Profile Picture
-            </a>
-            <a href="{% url 'subscription_history' %}" class="btn btn-outline-info mt-2">
-                View Subscription History
-            </a>
-        </div>
+  <div class="card p-4 shadow" style="max-width: 360px; width:100%;">
+    <div class="d-flex flex-column align-items-center text-center">
+      <img
+        src="{% if user.userprofile.profile_pic %}{{ user.userprofile.profile_pic.url }}{% else %}{{ MEDIA_URL }}profile_pics/default.jpg{% endif %}"
+        alt="Profile"
+        class="rounded-circle mb-3"
+        style="width: 100px; height: 100px; object-fit: cover; border:2px solid #eee;"
+      >
+      <h4>{{ user.username }}</h4>
+      <p class="text-muted small mb-2">
+        Joined: {{ user.date_joined|date:"F j, Y" }}
+      </p>
+      <div>
+        {% if user.userprofile.member_status == "premium" %}
+          <span class="badge bg-warning text-dark">Premium</span>
+        {% else %}
+          <span class="badge bg-secondary">Free</span>
+        {% endif %}
+        {% if user.is_staff %}
+          <span class="badge bg-success ms-2">Planr Staff</span>
+        {% endif %}
+      </div>
+      {% if user.userprofile.member_status == "free" %}
+        <a href="{% url 'subscribe' %}" class="btn btn-warning mt-2">Upgrade to Premium</a>
+      {% endif %}
+      <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary mt-4">
+        Edit Profile Picture
+      </a>
+      <a href="{% url 'subscription_history' %}" class="btn btn-outline-info mt-2">
+        View Subscription History
+      </a>
     </div>
+
+    <!-- Organisation Section -->
+    <div class="mt-4">
+      <h5 class="mb-3">Organisation</h5>
+      {% if user.organisationmembership %}
+        {% with membership=user.organisationmembership %}
+        <div class="mb-3 p-2 rounded bg-light">
+          <div class="d-flex justify-content-between align-items-center">
+            <span>
+              <strong>{{ membership.organisation.name }}</strong>
+              <span class="text-muted ms-2 small">{{ membership.get_role_display }}</span>
+            </span>
+            <a href="{% url 'organisation_dashboard' membership.organisation.id %}" class="btn btn-sm btn-outline-secondary ms-2">Manage</a>
+          </div>
+          <div class="small mt-1">
+            Joined: {{ membership.joined_at|date:"Y-m-d" }}<br>
+            Invite code: <code>{{ membership.organisation.code }}</code>
+          </div>
+          <div class="mt-2">
+            <strong>Members:</strong>
+            <ul class="list-unstyled mb-0">
+              {% for m in membership.organisation.organisationmembership_set.all %}
+                <li>
+                  {{ m.user.username }}
+                  {% if m.role == "admin" %}<span class="badge bg-primary ms-1">Admin</span>{% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endwith %}
+      {% else %}
+        <div class="alert alert-info">
+          You are not a member of any organisation.<br>
+          <a href="{% url 'create_organisation' %}" class="btn btn-outline-success btn-sm mt-2">Create Organisation</a>
+          <a href="{% url 'join_organisation' %}" class="btn btn-outline-info btn-sm mt-2">Join With Code</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}

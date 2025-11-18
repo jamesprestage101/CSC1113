@@ -47,3 +47,11 @@ class FeedbackForm(forms.ModelForm):
             'screenshot',
             'transcript',
         ]
+
+class OrganisationCreateForm(forms.ModelForm):
+    class Meta:
+        model = Organisation
+        fields = ['name']
+
+class OrganisationJoinForm(forms.Form):
+    code = forms.CharField(max_length=12, label="Organisation Invite Code")

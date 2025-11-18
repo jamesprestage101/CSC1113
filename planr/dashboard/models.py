@@ -1,7 +1,8 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save
+from django.contrib.auth.models import User
 from django.dispatch import receiver
+import uuid
 
 # User profile extension (status + profile picture)
 class UserProfile(models.Model):
@@ -64,3 +65,33 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f"Feedback ({self.get_feedback_type_display()}) by {self.user.username}"
+
+
+# Organisation model
+class Organisation(models.Model):
+    name = models.CharField(max_length=128)
+    code = models.CharField(max_length=12, unique=True, editable=False)
+    created_by = models.ForeignKey(User, related_name='organisations_created', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = uuid.uuid4().hex[:12].upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+# Organisation membership (user can be only in one organisation)
+class OrganisationMembership(models.Model):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('member', 'Member'),
+    ]
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='member')
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} in {self.organisation.name} ({self.role})"

@@ -24,7 +24,7 @@ body {
     color: white !important;
 }
 
-/* Underline bar ONLY for main nav links, excluding the profile section */
+/* Underline bar for main nav links, excluding the profile section */
 .navbar .navbar-nav:not(.ms-auto) .nav-link {
     position: relative;
     transition: color 0.18s;

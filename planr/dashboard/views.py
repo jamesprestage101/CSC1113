@@ -84,7 +84,8 @@ def edit_profile(request):
         form = ProfileUpdateForm(instance=profile)
     return render(request, 'registration/edit_profile.html', {'form': form})
 
-# Handle premium subscription and dummy payment submissions
+# Handle premium subscription and dummy payment submissions 
+# This can be done by an individual or on their behalf by an organisation admin
 @login_required
 def subscribe(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -128,6 +129,7 @@ def submit_feedback(request):
         form = FeedbackForm()
     return render(request, 'feedback/feedback.html', {'form': form, 'feedback_submitted': feedback_submitted})
 
+# Allow users to view their feedback and allows admins to respond to feedback
 @login_required
 def feedback_tracker(request):
     feedback_type = request.GET.get('type', '')
@@ -164,3 +166,122 @@ def feedback_response(request, feedback_id):
     feedback.admin_response = request.POST.get('response', '').strip()
     feedback.save()
     return redirect('feedback_tracker')
+
+# Allows users to create/join/manage organisations
+@login_required
+def create_organisation(request):
+    if OrganisationMembership.objects.filter(user=request.user).exists():
+        return redirect('profile')
+    if request.method == 'POST':
+        form = OrganisationCreateForm(request.POST)
+        if form.is_valid():
+            org = form.save(commit=False)
+            org.created_by = request.user
+            org.save()
+            OrganisationMembership.objects.create(user=request.user, organisation=org, role='admin')
+            return redirect('organisation_dashboard', org.id)
+    else:
+        form = OrganisationCreateForm()
+    return render(request, 'organisations/create_org.html', {'form': form})
+
+@login_required
+def join_organisation(request):
+    if OrganisationMembership.objects.filter(user=request.user).exists():
+        return redirect('profile')
+    if request.method == 'POST':
+        form = OrganisationJoinForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code'].strip().upper()
+            try:
+                org = Organisation.objects.get(code=code)
+                OrganisationMembership.objects.create(user=request.user, organisation=org, role='member')
+                return redirect('organisation_dashboard', org.id)
+            except Organisation.DoesNotExist:
+                form.add_error('code', 'Invalid code.')
+            except Exception:
+                form.add_error('code', 'You are already a member of an organisation.')
+    else:
+        form = OrganisationJoinForm()
+    return render(request, 'organisations/join_org.html', {'form': form})
+
+@login_required
+def organisation_dashboard(request, org_id):
+    org = get_object_or_404(Organisation, id=org_id)
+    try:
+        user_membership = OrganisationMembership.objects.get(user=request.user)
+        if user_membership.organisation.id != org.id:
+            return redirect('profile')
+    except OrganisationMembership.DoesNotExist:
+        return redirect('profile')
+    memberships = OrganisationMembership.objects.filter(organisation=org).select_related('user', 'user__userprofile')
+    return render(request, 'organisations/org_dashboard.html', {
+        'organisation': org,
+        'memberships': memberships,
+        'user_membership': user_membership,
+    })
+
+@login_required
+def remove_member(request, org_id, user_id):
+    org = get_object_or_404(Organisation, id=org_id)
+    admin_membership = get_object_or_404(OrganisationMembership, user=request.user, organisation=org, role='admin')
+    target_member = get_object_or_404(OrganisationMembership, organisation=org, user__id=user_id)
+    if target_member.user != request.user:
+        target_member.delete()
+    return redirect('organisation_dashboard', org_id)
+
+@login_required
+def subscribe(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    error = message = None
+    if request.method == "POST":
+        card = request.POST.get("card_number")
+        expiry = request.POST.get("expiry")
+        cvv = request.POST.get("cvv")
+        if card and expiry and cvv:
+            profile.member_status = "premium"
+            profile.save()
+            SubscriptionTransaction.objects.create(
+                user=request.user,
+                amount=100.00,
+                valid_until=timezone.now().date() + timedelta(days=30)
+            )
+            message = "You have been upgraded to premium!"
+        else:
+            error = "Please fill in all required fields."
+    return render(request, "registration/subscribe.html", {
+        "error": error,
+        "message": message,
+        "member": None,
+        "admin_upgrading": False
+    })
+
+@login_required
+def admin_subscribe_member(request, org_id, user_id):
+    org = get_object_or_404(Organisation, id=org_id)
+    admin_membership = get_object_or_404(OrganisationMembership, user=request.user, organisation=org, role='admin')
+    member = get_object_or_404(User, id=user_id)
+    member_profile = get_object_or_404(UserProfile, user=member)
+    if member == request.user:
+        return redirect('subscribe')
+    message = error = None
+    if request.method == "POST":
+        card = request.POST.get("card_number")
+        expiry = request.POST.get("expiry")
+        cvv = request.POST.get("cvv")
+        if card and expiry and cvv:
+            member_profile.member_status = "premium"
+            member_profile.save()
+            SubscriptionTransaction.objects.create(
+                user=member,
+                amount=100.00,
+                valid_until=timezone.now().date() + timedelta(days=30)
+            )
+            message = f"{member.username} has been upgraded to premium."
+        else:
+            error = "Please fill in all required fields."
+    return render(request, "registration/subscribe.html", {
+        "error": error,
+        "message": message,
+        "member": member,
+        "admin_upgrading": True,
+    })

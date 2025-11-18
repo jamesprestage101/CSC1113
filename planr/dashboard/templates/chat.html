@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Chat - DCC Planning Assistant{% endblock %}
+{% block title %}Chat{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'css/style.css' %}" rel="stylesheet">
@@ -47,7 +47,6 @@
                                 <div class="starter-question" onclick="askQuestion('CSC1113 Grading Note')">
                                     📋 CSC1113 Grading Note
                                 </div>
-                                <!-- We have commented out the below starter questions, as free tier cloud hosting cannot run our LLM -->
                                 <div class="starter-question" onclick="askQuestion('What are the short-term letting rules in Dublin?')">
                                     ⏱️ What are the short-term letting rules?
                                 </div>

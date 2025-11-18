@@ -21,6 +21,8 @@ class StaticViewSitemap(sitemaps.Sitemap):
             'subscription_history',
             'feedback',
             'feedback_tracker',
+            'create_organisation',
+            'join_organisation',
         ]
 
     def location(self, item):
@@ -46,5 +48,11 @@ urlpatterns = [
     path('feedback-tracker/', views.feedback_tracker, name='feedback_tracker'),
     path('feedback/update-status/<int:feedback_id>/', views.feedback_status_update, name='feedback_status_update'),
     path('feedback/response/<int:feedback_id>/', views.feedback_response, name='feedback_response'),
+    path('create-organisation/', create_organisation, name='create_organisation'),
+    path('join-organisation/', join_organisation, name='join_organisation'),
+    path('organisation/<int:org_id>/', organisation_dashboard, name='organisation_dashboard'),
+    path('organisation/<int:org_id>/remove/<int:user_id>/', remove_member, name='remove_member'),
+    path('subscribe/', subscribe, name='subscribe'),
+    path('organisation/<int:org_id>/upgrade_form/<int:user_id>/', admin_subscribe_member, name='admin_subscribe_member'),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps_dict}, name='django.contrib.sitemaps.views.sitemap'),
 ]

@@ -1,5 +1,8 @@
 # Ollama
 import ollama
+# Subscription Validation
+from django.utils import timezone
+from .models import *
 
 # Below is code for our LLM. Please bare in mind it does not include the RAG sytsem so cannot access scraped data.
 # It requires the dependencies in requirements.txt + Ollama mistral running locally to function properly.
@@ -16,7 +19,6 @@ Be professional, helpful, and accurate.
 GREETINGS = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening", "greetings"]
 def is_greeting(user_query):
     lowered = user_query.strip().lower()
-    # Exact greeting match or common variations
     return any(greet == lowered for greet in GREETINGS)
 
 # Main LLM logic
@@ -26,12 +28,12 @@ def ollama_dcc_response(user_query):
         "While we have included the code for our working chatbot, the LLM (Ollama) + RAG system are not installed on PythonAnywhere due to free tier limitations.\n\n"
         "Since the Q&A session, we have taken the feedback on board and expanded the site’s functionality, including:\n"
         "- Company Information Landing Page\n"
-        "- User Registration\n"
-        "- LLM Integration (that’s me, Planr!)\n"
+        "- Organisation Management\n"
+        "- Chatbot Integration (that’s me, Planr!)\n"
         "- Subscriptions\n"
         "- Feedback Submission\n"
         "- Feedback Ticket Status and Admin Response System\n\n"
-        "Additionally, many other features are implemented, such as media upload and preview, complex JavaScript forms, robust subscription validation (premium expires after one month), and deployment.\n\n"
+        "Additionally, many other features are implemented, such as media upload/preview, complex JavaScript forms, robust subscription validation (premium expires after one month), and deployment.\n\n"
         "To access the Feedback Tracker admin controls and see resolved queries, please use admin:admin for your next login.\n\n"
         "We hope you enjoy exploring the website and find it goes beyond the standard taught in lectures. Thank you for your time and consideration!"
     )
@@ -57,8 +59,6 @@ def ollama_dcc_response(user_query):
         return f"Ollama error: {e}. Is Ollama running?"
 
 # Premium User Check (this is called every time a user logs in)
-from django.utils import timezone
-from .models import SubscriptionTransaction, UserProfile
 def check_and_update_subscription(user):
     try:
         latest_sub = SubscriptionTransaction.objects.filter(

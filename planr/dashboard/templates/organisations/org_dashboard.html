@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Organisation Dashboard{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="card shadow p-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+      <div>
+        <h3 class="mb-0">{{ organisation.name }}</h3>
+        <div class="text-muted small">
+          Organisation code: <code>{{ organisation.code }}</code>
+          <br>
+          Created: {{ organisation.created_at|date:"Y-m-d" }}
+        </div>
+      </div>
+      <div>
+        <a href="{% url 'profile' %}" class="btn btn-link">Back to Profile</a>
+      </div>
+    </div>
+    <hr>
+    <h5>Members</h5>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Last Login</th>
+            <th>Subscription</th>
+            {% if user_membership.role == "admin" %}
+              <th>Actions</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in memberships %}
+            <tr class="{% if m.user == user %}table-info{% endif %}">
+              <td>
+                {{ m.user.username }}
+                {% if m.user == user %}<span class="badge bg-secondary ms-2">You</span>{% endif %}
+              </td>
+              <td>
+                {% if m.role == "admin" %}
+                  <span class="badge bg-primary">Admin</span>
+                {% else %}
+                  Member
+                {% endif %}
+              </td>
+              <td>{{ m.joined_at|date:"Y-m-d" }}</td>
+              <td>{% if m.user.last_login %}{{ m.user.last_login|date:"Y-m-d H:i" }}{% else %}<span class="text-muted">Never</span>{% endif %}</td>
+              <td>
+                {% if m.user.userprofile.member_status == "premium" %}
+                  <span class="badge bg-success">Premium</span>
+                {% else %}
+                  <span class="badge bg-secondary">Free</span>
+                {% endif %}
+              </td>
+              {% if user_membership.role == "admin" %}
+                <td>
+                  {% if m.user != user %}
+                    <form method="post" action="{% url 'remove_member' organisation.id m.user.id %}" style="display: inline;">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-danger" onclick="return confirm('Remove this member?');">Remove</button>
+                    </form>
+                    {% if m.user.userprofile.member_status != "premium" %}
+                      <a href="{% url 'admin_subscribe_member' organisation.id m.user.id %}" class="btn btn-sm btn-warning">
+                        Upgrade to Premium
+                      </a>
+                    {% endif %}
+                  {% else %}
+                  {% endif %}
+                </td>
+              {% endif %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6"><em>No members in this organisation.</em></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-4">
+      {% if user_membership.role == "admin" %}
+        <div class="alert alert-info">
+          Share this code to invite people to join your organisation:<br>
+          <code>{{ organisation.code }}</code>
+        </div>
+      {% endif %}
+      <a href="{% url 'profile' %}" class="btn btn-outline-primary">Return to Profile</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
